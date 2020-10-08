@@ -27,10 +27,10 @@ theme_set(theme_minimal() + theme(legend.position = "bottom"))
 data("instacart")
 ```
 
-This dataset contains `r nrow(instacart)` rows and ... columns. 
+This dataset contains `r nrow(instacart)` rows and `r ncol(instacart)` columns. 
 Observations are the level of items in orders by users. There are user/order variables -- user ID, order ID, order day, and order hour. There are also item variables -- name, aisle, department, and some numeric codes. 
 
-To get the number of aisles and which are most items from?
+#### Number of aisles and which aisles are the most items ordered from?
 
 ```{r}
 
@@ -40,7 +40,9 @@ instacart %>%
 
 ```
 
-Let's make a plot
+It seems like the top 3 aisles where the most items are ordered from are "fresh vegetables", "fresh fruits", and "packaged vegetable fruits". 
+
+#### Make a plot that shows the number of items ordered in each aisle, limiting this to aisles with more than 10000 items ordered.
 
 ```{r}
 
@@ -57,7 +59,7 @@ instacart %>%
 
 ```
 
-Let's make a table! (counting and ranking process involved)
+#### Make a table showing the three most popular items in each of the aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits”. Include the number of times each item is ordered in your table.
 
 ```{r}
 
@@ -73,7 +75,7 @@ instacart %>%
 ```
 
 
-Apples vs. ice cream 
+#### Make a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week; format this table for human readers. 
 
 ```{r}
 
@@ -88,5 +90,72 @@ instacart %>%
 
 ```
 
+### Problem 2 
+
+#### Load, tidy, wrangle the data. 
+```{r}
+
+accel_df = 
+  read_csv("./Data/accel_data.csv") %>%
+  janitor::clean_names() %>%
+  pivot_longer(
+    activity_1:activity_1440, 
+    names_to = "minutes", 
+    names_prefix = "activity_", 
+    values_to = "activity_count"
+  ) %>% 
+  mutate(minutes = as.numeric(minutes), 
+         day_num = recode(day, "Monday" = "1", 
+                             "Tuesday" = "2", 
+                             "Wednesday" = "3", 
+                             "Thursday" = "4", 
+                             "Friday" = "5", 
+                             "Saturday" = "6", 
+                             "Sunday" = "7")
+  ) %>%
+  mutate(
+    weekday_vs_weekend = case_when(
+      day_num <=5 ~ "Weekday", 
+      day_num > 5 ~ "Weekend", 
+      TRUE ~ ""
+    )
+  ) %>%
+  
+  select(-day_num)
 
 
+```
+
+The accelarator dataset contains information regarding the following variables: `r ls(accel_df)`. There are a total of `r nrow(accel_df)` row and `r ncol(accel_df)` columns in the final dataset. 
+
+#### Aggregate accross minutes to create a total activity variable for each day. 
+
+```{r}
+
+accel_df %>%
+  group_by(week, day_id) %>%
+  summarize(
+    total_activity = sum(activity_count)
+  ) %>%
+  knitr::kable()
+
+```
+
+The patient seems to be most active on Fridays and the least active on Saturdays. 
+
+#### Make a single-panel plot that shows the 24-hour activity time courses for each day.  
+
+```{r}
+
+accel_df %>%
+ggplot(aes(x = minutes, y = activity_count, color = day)) +
+  geom_line()
+
+```
+
+Based on the graph, it seems like the patient is more active during the day on Sundays and more active in the evening on Fridays. A noticeable trend is that the time at which the patient is more active seems to depend on which day of the week it is. 
+
+### Problem 3 
+
+* second question: data manipulation steps --> plotting step, group by will depend on a variety of things, filter, then summarize
+* third question: filter first then plot 
